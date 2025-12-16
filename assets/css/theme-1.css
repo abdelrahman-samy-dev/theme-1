@@ -771,7 +771,7 @@
 
 /* LTR Layout */
 [dir="ltr"] .theme-1 .why-choose-content {
-  flex-direction: row;
+  flex-direction: row-reverse;
 }
 
 [dir="ltr"] .theme-1 .stats-cards-wrapper {
