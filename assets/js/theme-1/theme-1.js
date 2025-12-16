@@ -5,99 +5,41 @@
   // Load Language File
   // ============================================
   function loadLanguageFile(filePath) {
-    const themeSection = document.querySelector('.theme-1');
-    if (!themeSection) {
-      console.error('Theme section not found');
-      return;
-    }
-
-    // Get the base path (current directory where the HTML files are)
-    const currentPath = window.location.pathname;
+    // Use direct navigation instead of fetch for better compatibility with GitHub Pages
+    // This ensures the language switch works reliably on all hosting platforms
+    
     let fullPath = '';
     
     // If filePath is absolute (starts with /), use it directly
     if (filePath.startsWith('/')) {
       fullPath = filePath;
     } else {
-      // Relative path - calculate base path from current location
-      let basePath = '';
-      
-      // Get the directory path from current location
-      // Remove filename and get directory path
-      const pathParts = currentPath.split('/').filter(part => part);
-      const fileName = pathParts[pathParts.length - 1];
-      
-      // If we have a filename, remove it to get the directory
-      if (fileName && fileName.includes('.html')) {
-        pathParts.pop();
+      // For relative paths, use URL constructor to resolve correctly
+      try {
+        const url = new URL(filePath, window.location.href);
+        fullPath = url.pathname;
+      } catch (e) {
+        // Fallback: calculate path manually
+        const currentPath = window.location.pathname;
+        const pathParts = currentPath.split('/').filter(part => part);
+        const fileName = pathParts[pathParts.length - 1];
+        
+        // Remove current filename to get directory
+        if (fileName && fileName.includes('.html')) {
+          pathParts.pop();
+        }
+        
+        // Build base path
+        const basePath = pathParts.length > 0 
+          ? '/' + pathParts.join('/') + '/' 
+          : '/';
+        
+        fullPath = basePath + filePath;
       }
-      
-      // Build base path - if we're in root, basePath is empty, otherwise add trailing slash
-      if (pathParts.length > 0) {
-        basePath = '/' + pathParts.join('/') + '/';
-      } else {
-        // Files are in root directory
-        basePath = '';
-      }
-      
-      // Combine base path with file path
-      fullPath = basePath + filePath;
     }
-
-    // Show loading state
-    themeSection.style.opacity = '0.5';
-    themeSection.style.pointerEvents = 'none';
-
-    // Fetch the HTML file
-    fetch(fullPath)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.text();
-      })
-      .then(html => {
-        // Create a DOMParser to properly parse the HTML
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
-        // Extract the section content - try multiple selectors
-        let newSection = doc.querySelector('.theme-1');
-        
-        // If not found, try to find section tag
-        if (!newSection) {
-          newSection = doc.querySelector('section.theme-1');
-        }
-        
-        // If still not found, try body content
-        if (!newSection) {
-          const body = doc.querySelector('body');
-          if (body) {
-            newSection = body.querySelector('.theme-1') || body.querySelector('section');
-          }
-        }
-        
-        if (!newSection) {
-          console.error('Could not find .theme-1 in loaded file');
-          themeSection.style.opacity = '1';
-          themeSection.style.pointerEvents = 'auto';
-          return;
-        }
-
-        // Replace the current section with the new one
-        themeSection.outerHTML = newSection.outerHTML;
-
-        // Re-initialize all features after content replacement
-        setTimeout(() => {
-          init();
-        }, 100);
-      })
-      .catch(error => {
-        console.error('Error loading language file:', error);
-        console.log('Trying fallback navigation to:', fullPath);
-        // Fallback: try direct navigation
-        window.location.href = fullPath;
-      });
+    
+    // Navigate directly to the language file
+    window.location.href = fullPath;
   }
 
   // ============================================
